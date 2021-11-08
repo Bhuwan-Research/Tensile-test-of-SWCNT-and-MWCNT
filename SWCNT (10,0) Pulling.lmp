@@ -1,0 +1,153 @@
+clear
+variable 		fname index CNT.10.0.60.data
+variable 		simname index CNT.10.0.60.300K.1
+log				${simname}.log.lammps
+
+#LAMMPS input file
+# tensile: fixed at one end , pulling other end z-direction
+
+
+#######-----------------initialization------------------------------------------------
+
+variable		Test_Temp	equal 300
+variable		Srate equal   1e-3	
+variable		Def_Run equal 120000					#(0.14,2400k)=60k,80k,1.2L,2.4L,6L #
+variable		Equ_Run equal 10000	
+
+variable		myseed equal 12345
+variable		atomrate equal 100
+variable		time_step equal 0.002
+variable		time_equ equal 100
+variable 		tdamp equal "v_time_step*100"
+variable		pdamp equal "v_time_step*1000"
+variable		dump_freq equal "v_Def_Run/200"
+
+units          metal
+dimension      3
+boundary       s s s
+atom_style     atomic
+
+
+# --------------------Atom Definition-------------------------------
+
+read_data      		${fname}
+
+
+#--------------------------potential------------------------------------------
+
+pair_style		rebo
+pair_coeff		* * CH.rebo C 
+
+
+# Groping of atoms
+
+variable 	zl1 equal "zlo-1"
+variable	zl2 equal "zlo+2"
+variable 	zh1 equal "zhi-1"
+variable	zh2 equal "zhi+1"
+print		"zl1 : ${zl1} , zl2 : ${zl2}, zh1 : ${zh1} , zh2 : ${zh2}"
+
+# define groups
+region   	RLeft block  -15 15 -15 15  ${zl1} ${zl2}	units box	# fixed region
+region		RMiddle block -15 15 -15 15 ${zl2} ${zh1} units box
+region		Rright block -15 15 -15 15 ${zh1} ${zh2} units box
+region		Rtotal union 3 RLeft RMiddle Rright
+
+group		Gwall region RLeft						# PUTING atoms in region 1
+group		Gpull region Rright
+group		Gmiddle subtract all Gwall Gpull		# subtraing from all atoms-waal-pull
+group		Gtotal region Rtotal
+
+
+#-------------------------------Mininization-------------------------------
+
+
+min_style 			cg
+minimize			 1.0e-5 1.0e-8 10000 100000
+
+print 		"MINIMIZATION IS DONE"
+
+# -----------------------Equilibtration----Settings----------------------
+
+reset_timestep 		0 
+timestep       		 ${time_step}
+#neigh_modify every 10 delay 20 check yes page 100000
+
+
+# -----fix ------------
+velocity       all create ${Test_Temp} 4928459 rot yes mom yes dist gaussian
+fix            	2 all nve	 
+fix 			3 all langevin ${Test_Temp} ${Test_Temp} ${tdamp} 48264  
+
+thermo 		100 
+thermo_style 	custom step etotal pe  temp vol lx ly lz press pxx pyy pzz 
+
+variable 		time equal "step*v_time_step"
+variable 		TE equal "-etotal"
+variable		PE equal "-pe"
+variable		e4 equal "temp"
+variable		e5 equal "-pzz"
+
+
+fix 	def1 all print 100 "${time} ${TE} ${PE} ${e4} ${e5} " file ${simname}.Equi.txt screen no
+
+dump      1 all custom 100  ${simname}.Equi.lammpstrj id x y z ix iy iz
+dump_modify 1 element C
+
+run  ${Equ_Run}
+
+unfix	2
+unfix 	3
+unfix	def1
+undump	1
+print	"Equlibration is Done"
+
+# ----------------------defrormationnn-----------------------------------------
+run 			0
+
+reset_timestep		0
+timestep			${time_step}
+
+#storing equilibrated parameters
+
+
+variable 	p3 equal "lz"
+variable 	L0 equal ${p3}						#length of CNT
+print "Initial length of CNT is, L0:${L0}"
+variable 	strain equal "(lz - v_L0)/v_L0"
+variable	load_speed	equal ${Srate}*${L0}			# equivalent strain rate based on Load speed
+
+
+# Method 1 : pulling one side
+
+velocity	Gwall set 0 0 0
+fix  		fixedwall Gwall setforce 0 0 0
+fix 		fixpull Gpull setforce 0 0 0
+fix          1 Gmiddle nvt temp ${Test_Temp} ${Test_Temp} ${tdamp}
+fix 		2 Gpull move linear 0 0 ${load_speed} units box						# load speed= L0*strain rate A/ps 
+fix 		fixTemp Gmiddle langevin ${Test_Temp} ${Test_Temp} 100 904297 
+
+
+variable 	d1 equal "step*v_time_step"
+variable 	d3 equal "etotal"
+variable	d4 equal "-pe"
+variable 	d5 equal "temp"
+variable	d6 equal "v_strain"
+variable 	d10 equal "-pzz/10"
+
+fix 		def2 all print ${dump_freq} "${d1} ${d3} ${d4} ${d5} ${d6} ${d10} " file ${simname}.Deform.txt screen no
+
+dump		2 all custom ${dump_freq} ${simname}.Deform.lammpstrj id x y z ix iy iz 
+dump_modify 2 element C
+
+thermo				1000
+thermo_style		custom step etotal pe  vol temp lx ly lz v_strain press pxx pyy pzz  
+
+
+run					${Def_Run}
+
+# SIMULATION DONE
+print "All done"
+
+
+
