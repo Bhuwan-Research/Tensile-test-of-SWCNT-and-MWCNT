@@ -7,4 +7,5 @@ The tensile test of SWCNT &amp; MWCNT using LAMMPS to find the Yield strain, Ult
 2. change fname, Test_temp, Srate, Def_run according to 300 K, 800 K , 1600 K , 2400 K. and strain rate 0.25e-3, 0.5e-3, 0.75e-3 1e-3 ps^-1.
 3. Run lammps script file.
 4. open lammps trajectory (.lammpstjr) using VMD or Ovito to visualize MD simulation.
-5. Run matlab script (.mlx) to plot graphs.
+5. Change path (C:\Users\lenovo\OneDrive - IIT Delhi\NanoMechanics Project\Graphs) in matlab code to your directory.
+6.  Run matlab script (.mlx) to plot graphs.
