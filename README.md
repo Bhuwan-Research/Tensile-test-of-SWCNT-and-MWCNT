@@ -3,6 +3,8 @@ The tensile test of SWCNT &amp; MWCNT using LAMMPS to find the Yield strain, Ult
 
 
 #### steps
-1. Run the Lammps input script file (.imp) at 300 K, 800 K , 1600 K , 2400 K. and strain rate 0.25e-3, 0.5e-3, 0.75e-3 1e-3 ps^-1.
-2. open lammps trajectory (.lammpstjr) using VMD or Ovito to visualize MD simulation.
-3. Run matlab script (.mlx) to visualize deformation.
+1. open Lammps input script file (.imp) 
+2. change fname, Test_temp, Srate, Def_run according to 300 K, 800 K , 1600 K , 2400 K. and strain rate 0.25e-3, 0.5e-3, 0.75e-3 1e-3 ps^-1.
+3. Run lammps script file.
+4. open lammps trajectory (.lammpstjr) using VMD or Ovito to visualize MD simulation.
+5. Run matlab script (.mlx) to plot graphs.
