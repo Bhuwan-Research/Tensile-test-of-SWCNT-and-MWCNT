@@ -1,6 +1,6 @@
 clear
-variable 		fname index MWCNT.20.0.10.0.60.data
-variable 		simname index MWCNT.300K.1
+variable 		fname index MWCNT.20.0.10.0.60.data     # do not change
+variable 		simname index MWCNT.300K.1            # need to change temperature 300K, strain rate 1, wich represent 1e-3  1/ps 
 log				${simname}.log.lammps
 
 #LAMMPS input file
@@ -9,9 +9,9 @@ log				${simname}.log.lammps
 
 #######-----------------initialization------------------------------------------------
 
-variable		Test_Temp	equal 300
-variable		Srate equal  01e-3	
-variable		Def_Run equal 120000
+variable		Test_Temp	equal 300         # change temperature 300, 800, .......K
+variable		Srate equal  01e-3	      # change 
+variable		Def_Run equal 120000      # change
 variable		Equi_Run equal 15000
 
 variable		myseed equal 12345
