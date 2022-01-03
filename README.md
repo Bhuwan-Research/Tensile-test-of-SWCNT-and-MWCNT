@@ -1,4 +1,5 @@
 # Tensile-test-of-SWCNT-and-MWCNT
+The tensile test simulation was performed on LAMMPS just to get aquanted with the MD simulation. This is a class based project for fullfilment of Nanomechanics course.
 The tensile test of SWCNT &amp; MWCNT using LAMMPS to find the Yield strain, Ultimate strength and Young's modulus.
 
 
